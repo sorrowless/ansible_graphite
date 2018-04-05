@@ -1,0 +1,6 @@
+---
+- name: Install and configure Graphite
+  hosts: localhost
+  remote_user: root
+  roles:
+    - { role: graphite, tags: [ 'graphite' ] }

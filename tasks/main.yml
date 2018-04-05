@@ -1,0 +1,61 @@
+---
+- name: Graphite | Install needed packages
+  package:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - docker.io
+    - python-docker
+    - docker-compose
+
+- name: Graphite | Ensure docker daemon enabled
+  systemd:
+    name: docker.service
+    state: started
+    enabled: yes
+
+- name: Graphite | Configure network ranges for docker hosts
+  docker_network:
+    name: "{{ docker.network_name }}"
+    driver_options:
+      com.docker.network.bridge.name: net2
+    ipam_options:
+      subnet: '{{ docker.network_subnet }}'
+      gateway: '{{ docker.network_gateway }}'
+      iprange: '{{ docker.network_iprange }}'
+
+- name: Graphite | Merge user data with default
+  set_fact:
+    graphite: "{{ graphite_data | combine(graphite, recursive=True) }}"
+  tags:
+    - always
+
+- name: Graphite | Create needed directories for docker-graphite
+  file:
+    dest: "{{ graphite.graphite_storage }}"
+    state: directory
+    mode: 0755
+
+- name: Graphite | Start docker Graphite container
+  docker_service:
+    state: present
+    project_name: graphite
+    definition:
+      version: '2'
+      services:
+        graphite:
+          image: "hopsoft/graphite-statsd"
+          container_name: "graphite"
+          ports:
+            - "127.0.0.1:8008:80"
+            - "127.0.0.1:2003-2004:2003-2004"
+            - "127.0.0.1:2023-2024:2023-2024"
+          volumes:
+            - "{{ graphite.graphite_storage }}:/opt/graphite/storage"
+          hostname: "graphite"
+          restart: always
+          labels: "{{ graphite.docker_labels }}"
+      networks:
+        default:
+          external:
+            name: "{{ docker.network_name }}"

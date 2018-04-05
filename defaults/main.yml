@@ -1,0 +1,15 @@
+---
+# Graphite dict vars. Should be set by user
+graphite: {}
+# Internal Graphite dict vars. Will be merged with user dict vars
+graphite_data:
+  docker_labels: []
+  # Host directory to store data on
+  graphite_storage: /var/graphite/storage
+
+# Docker network-related vars
+docker:
+  network_name: internal.loc
+  network_subnet: 172.22.101.0/24
+  network_gateway: 172.22.101.1
+  network_iprange: 172.22.101.128/25
