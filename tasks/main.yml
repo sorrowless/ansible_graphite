@@ -37,11 +37,10 @@
     mode: 0755
 
 - name: Graphite | Start docker Graphite container
-  docker_service:
+  community.docker.docker_compose_v2:
     state: present
     project_name: graphite
     definition:
-      version: '2'
       services:
         graphite:
           image: "hopsoft/graphite-statsd"
@@ -57,5 +56,5 @@
           labels: "{{ graphite.docker_labels }}"
       networks:
         default:
-          external:
-            name: "{{ docker.network_name }}"
+          external: true
+          name: "{{ docker.network_name }}"
